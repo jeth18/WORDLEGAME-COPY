@@ -1,5 +1,6 @@
 import { useEffect, useState, type KeyboardEvent } from 'react'
 import './App.css'
+import { keyboardsLetters } from './constants.d'
 
 interface ILetter {
   letter: string,
@@ -39,6 +40,39 @@ function App() {
 
     if (event.key === 'Enter') {
       //validate
+      const gridRowWord = grid[positionY].map(el => el.letter).join('')
+      const copyGrid = [...grid]
+
+      if(gridRowWord.length < 4) {
+        alert('Error la palabra es muy corta')
+        return
+      }
+
+      //correct word
+      if(word === gridRowWord) {
+        for(let i = 0; i < 5; i++){
+          copyGrid[positionY][i] = { letter: copyGrid[positionY][i].letter, color: 'green'}
+        }
+        setGrid(copyGrid)
+        setPoisitionY(6)
+        setIsValidate(false)
+        return
+      }
+
+      //verificar letters
+      word.split('').forEach((el, index) => {
+        if(el === copyGrid[positionY][index].letter) {
+          copyGrid[positionY][index] = { letter: el, color: 'green'}
+        } else if(copyGrid[positionY].some(l => l.letter === el)) {
+          const posX = copyGrid[positionY].findIndex(element => element.letter === el)
+          copyGrid[positionY][posX] = { letter: el, color: 'yellow' }
+        }
+      })
+
+
+
+      setPoisitionX(0)
+      setPoisitionY(prev => prev + 1)
       setIsValidate(true)
     }
 
@@ -53,19 +87,13 @@ function App() {
 
   const setLetter = (l: string) => {
 
-    if(positionY === 6) return
+    if(positionY > 5) return
     
     const gridCopy = [...grid]
-    gridCopy[positionY][positionX].letter = l.toUpperCase()
+    gridCopy[positionY][positionX] = { letter: l.toUpperCase(), color: 'none'}
     setGrid(gridCopy)
     
     if(positionX < 4) setPoisitionX(prev => prev + 1)
-
-    if(positionX === 4 && isValidate) {
-      setPoisitionX(0)
-      setPoisitionY(prev => prev + 1)
-      setIsValidate(false)
-    }
   }
 
   const deleteLetter = () => {
@@ -84,23 +112,28 @@ function App() {
 
   }
     
-
   return (
     <div className='container'>
-      {
-        grid.map((el, i) => {
-          return (
-            <div key={i} className='container-letters' >
-              {el.map((l, index) => 
-                <div key={index} className='letters'>{l.letter}</div>
-              )}
-            </div>
+      <section className='grid'>
+        {
+          grid.map((el, i) => {
+            return (
+              <div key={i} className='container-letters' >
+                {el.map((l, index) => 
+                  <div key={index} className={`letters ${l.color}`}>{l.letter}</div>
+                )}
+              </div>
+            )
+          })
+        }
+        
+      </section>
+      <section className='container-alphabet'>
+        {
+          keyboardsLetters.map((letter, index) => 
+            <button key={index} onClick={() => setLetter(letter)}>{letter}</button>
           )
-        })
-      }
-
-      <section>
-        <button onClick={() => setLetter('A')}>A</button>
+        }
       </section>
     </div>
   )
