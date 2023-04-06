@@ -1,10 +1,33 @@
 .container {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
   gap: 12px;
   margin: 12px;
 
 }
+
+.container-header {
+  display: flex;
+  justify-content: space-between;
+  width: 300px;
+}
+
+.container-header button, select {
+  margin: 0 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid lightgrey;
+}
+
+.container-header button {
+  background-color: transparent;
+}
+
+.container-header button:active {
+  background-color: rgba(211, 211, 211, 0.300);
+} 
 
 .container-letters {
   display: flex;
@@ -29,10 +52,11 @@
 
 .container-alphabet {
   display: flex;
+  flex-direction: row;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  width: 500px;
+  max-width: 500px;
   gap: 4px;
 }
 
@@ -41,10 +65,10 @@
   justify-content: center;
   align-items: center;
   padding: 12px;
-  margin: 4px 0px;
+  margin: 8px 0px;
 
-  width: 48px;
-  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
   
   border: none;
   border-radius: 12px;
@@ -53,8 +77,13 @@
   color: black;
 }
 
-button:active {
+.container-alphabet button:active {
   background-color: blanchedalmond;
+}
+
+.row-alphabet {
+  display: flex;
+  gap: 4px;
 }
 
 .green {
@@ -64,4 +93,8 @@ button:active {
 .yellow {
   background-color: yellow;
   color: black;
+}
+
+.action {
+  background-color: lightblue !important;
 }

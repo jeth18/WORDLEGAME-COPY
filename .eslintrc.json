@@ -21,9 +21,12 @@
         "@typescript-eslint"
     ],
     "rules": {
-        "no-undef": "off",
-        "react/react-in-jsx-scope": "off",
-        "semi": [2, "never"],
-        "quotes": [2, "single", { "avoidEscape": true }]
+      "no-undef": "off",
+      "react/react-in-jsx-scope": "off",
+      "semi": [2, "never"],
+      "quotes": [2, "single", { "avoidEscape": true }],
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off"
     }
 }

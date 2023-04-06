@@ -1,11 +1,10 @@
-import { useEffect, useState, type KeyboardEvent } from 'react'
+import { useState, type KeyboardEvent, useEffect } from 'react'
 import './App.css'
-import { keyboardsLetters } from './constants.d'
-
-interface ILetter {
-  letter: string,
-  color: string
-}
+import { ILetter } from './interfaces'
+import { Grid } from './components/Grid'
+import { Keyboard } from './components/Keyboard'
+import { useEventListener } from './hooks/useEventListener'
+import { useWord } from './hooks/useWord'
 
 const INITIAL_VALUE: ILetter = {
   letter: '',
@@ -14,86 +13,59 @@ const INITIAL_VALUE: ILetter = {
 
 function App() {
 
-  const [word, setWord] = useState('NUEVO')
-  const [grid, setGrid] = useState<ILetter[][]>(() => [
-    Array(5).fill(INITIAL_VALUE),
-    Array(5).fill(INITIAL_VALUE),
-    Array(5).fill(INITIAL_VALUE),
-    Array(5).fill(INITIAL_VALUE),
-    Array(5).fill(INITIAL_VALUE),
-    Array(5).fill(INITIAL_VALUE),
-  ])
+  const { word, lengthw, searchWord, updateLengthWord } = useWord()
 
+  const GRID_INITIAL_VALUE: ILetter[][] = [
+    Array(lengthw).fill(INITIAL_VALUE),
+    Array(lengthw).fill(INITIAL_VALUE),
+    Array(lengthw).fill(INITIAL_VALUE),
+    Array(lengthw).fill(INITIAL_VALUE),
+    Array(lengthw).fill(INITIAL_VALUE),
+    Array(lengthw).fill(INITIAL_VALUE),
+  ]
+
+  const [grid, setGrid] = useState<ILetter[][]>(GRID_INITIAL_VALUE)
   const [positionX, setPoisitionX] = useState(0)
   const [positionY, setPoisitionY] = useState(0)
   const [isValidate, setIsValidate] = useState(false)
 
   useEffect(() => {
-    document.addEventListener('keydown', handleKeyPress)
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyPress)
-    }
-  }, [positionX, positionY, isValidate])
-
-  const handleKeyPress = (event: KeyboardEvent<HTMLDivElement>) => {
-
-    if (event.key === 'Enter') {
-      //validate
-      const gridRowWord = grid[positionY].map(el => el.letter).join('')
-      const copyGrid = [...grid]
-
-      if(gridRowWord.length < 4) {
-        alert('Error la palabra es muy corta')
-        return
-      }
-
-      //correct word
-      if(word === gridRowWord) {
-        for(let i = 0; i < 5; i++){
-          copyGrid[positionY][i] = { letter: copyGrid[positionY][i].letter, color: 'green'}
-        }
-        setGrid(copyGrid)
-        setPoisitionY(6)
-        setIsValidate(false)
-        return
-      }
-
-      //verificar letters
-      word.split('').forEach((el, index) => {
-        if(el === copyGrid[positionY][index].letter) {
-          copyGrid[positionY][index] = { letter: el, color: 'green'}
-        } else if(copyGrid[positionY].some(l => l.letter === el)) {
-          const posX = copyGrid[positionY].findIndex(element => element.letter === el)
-          copyGrid[positionY][posX] = { letter: el, color: 'yellow' }
-        }
-      })
+    setGrid(GRID_INITIAL_VALUE)
+    setPoisitionX(0)
+    setPoisitionY(0)
+    setIsValidate(false)
+  }, [lengthw])
 
 
+  const handleKeyPress = (event: unknown): void => {
+    
+    const evt = event as KeyboardEvent
+    evt.preventDefault()
 
-      setPoisitionX(0)
-      setPoisitionY(prev => prev + 1)
-      setIsValidate(true)
+    if (positionY > 6) return
+
+    if (evt.key === 'Enter') {
+      enter()
     }
 
-    if (event.key === 'Backspace') {
+    if (evt.key === 'Backspace') {
       deleteLetter()
     }
 
-    if (event.keyCode >= 65 && event.keyCode <= 90) {
-      setLetter(event.key)
+    if (evt.keyCode >= 65 && evt.keyCode <= 90) {
+      setLetter(evt.key)
     }
   }
 
-  const setLetter = (l: string) => {
+  const setLetter = (l: string):void => {
 
     if(positionY > 5) return
     
     const gridCopy = [...grid]
-    gridCopy[positionY][positionX] = { letter: l.toUpperCase(), color: 'none'}
+    gridCopy[positionY][positionX] = { letter: l.toUpperCase(), color: 'none' }
     setGrid(gridCopy)
     
-    if(positionX < 4) setPoisitionX(prev => prev + 1)
+    if(positionX < lengthw - 1)  setPoisitionX(prev => prev + 1) 
   }
 
   const deleteLetter = () => {
@@ -111,30 +83,74 @@ function App() {
     }
 
   }
-    
+  
+  const newGame = (e: unknown) => {
+    const evt = e as Event
+    evt.preventDefault()
+
+    setGrid(GRID_INITIAL_VALUE)
+    setPoisitionX(0)
+    setPoisitionY(0)
+    setIsValidate(false)
+    searchWord()
+  }
+
+  const enter = () => {
+    const gridRowWord = grid[positionY].map(el => el.letter).join('')
+    const copyGrid = [...grid]
+
+    if (gridRowWord.length < lengthw) {
+      alert('Error la palabra es muy corta')
+      return
+    }
+
+    //correct word
+    if (word === gridRowWord) {
+      for (let i = 0; i < lengthw; i++) {
+        copyGrid[positionY][i] = { letter: copyGrid[positionY][i].letter, color: 'green' }
+      }
+      setGrid(copyGrid)
+      setPoisitionY(6)
+      setIsValidate(false)
+      return
+    }
+
+    //verificar letters
+    word.split('').forEach((el, index) => {
+      if (el === copyGrid[positionY][index].letter) {
+        copyGrid[positionY][index] = { letter: el, color: 'green' }
+      } else if (copyGrid[positionY].some(l => l.letter === el)) {
+        const posX = copyGrid[positionY].findIndex(element => element.letter === el)
+        if (copyGrid[positionY][posX].color !== 'green') {
+          copyGrid[positionY][posX] = { letter: el, color: 'yellow' }
+        }
+      }
+    })
+
+    setPoisitionX(0)
+    setPoisitionY(prev => prev + 1)
+    setIsValidate(true)
+  }
+
+  useEventListener({positionX, positionY, isValidate, handleKeyPress})
+
   return (
     <div className='container'>
-      <section className='grid'>
-        {
-          grid.map((el, i) => {
-            return (
-              <div key={i} className='container-letters' >
-                {el.map((l, index) => 
-                  <div key={index} className={`letters ${l.color}`}>{l.letter}</div>
-                )}
-              </div>
-            )
-          })
-        }
-        
+      <section className='container-header'>
+        <button onClick={(e) => newGame(e)}>Nuevo juego</button>
+        <select value={lengthw} 
+          onChange={(e) => {
+            updateLengthWord(Number(e.target.value))
+          }
+        }>
+          <option value={3}>3</option>
+          <option value={4}>4</option>
+          <option value={5}>5</option>
+          <option value={6}>6</option>
+        </select>
       </section>
-      <section className='container-alphabet'>
-        {
-          keyboardsLetters.map((letter, index) => 
-            <button key={index} onClick={() => setLetter(letter)}>{letter}</button>
-          )
-        }
-      </section>
+      <Grid grid={grid}/>
+      <Keyboard setLetter={setLetter} deleteB={deleteLetter} enter={enter}/>
     </div>
   )
 }
