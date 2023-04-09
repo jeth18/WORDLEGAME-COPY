@@ -66,9 +66,6 @@
   align-items: center;
   padding: 12px;
   margin: 8px 0px;
-
-  min-width: 48px;
-  min-height: 48px;
   
   border: none;
   border-radius: 12px;
@@ -83,7 +80,7 @@
 
 .row-alphabet {
   display: flex;
-  gap: 4px;
+  gap: 1px;
 }
 
 .green {
@@ -97,4 +94,15 @@
 
 .action {
   background-color: lightblue !important;
+}
+
+@media (min-width: 600px) {
+  .container-alphabet button {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .row-alphabet {
+    gap: 4px;
+  }
 }

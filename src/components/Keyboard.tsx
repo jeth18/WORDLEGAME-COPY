@@ -9,7 +9,7 @@ export const Keyboard = ({ setLetter, deleteB, enter}: IKeyboard) => {
             <div key={index} className='row-alphabet'>
               { row.map((letter,i) => {
 
-                if(letter === 'delete') {
+                if(letter === '<') {
                   return (
                     <button key={i}
                       className='action'
