@@ -1,10 +1,14 @@
 import { useState, type KeyboardEvent, useEffect } from 'react'
-import './App.css'
 import { ILetter } from './interfaces'
 import { Grid } from './components/Grid'
 import { Keyboard } from './components/Keyboard'
 import { useEventListener } from './hooks/useEventListener'
 import { useWord } from './hooks/useWord'
+import { useOpen } from './hooks/useOpen'
+import { WinnerModal } from './components/WinnerModal'
+import { SurrenderModal } from './components/SurrenderModal'
+import confetti from 'canvas-confetti'
+import './App.css'
 
 const INITIAL_VALUE: ILetter = {
   letter: '',
@@ -12,7 +16,7 @@ const INITIAL_VALUE: ILetter = {
 }
 
 function App() {
-
+  
   const { word, lengthw, searchWord, updateLengthWord } = useWord()
 
   const GRID_INITIAL_VALUE: ILetter[][] = [
@@ -28,6 +32,10 @@ function App() {
   const [positionX, setPoisitionX] = useState(0)
   const [positionY, setPoisitionY] = useState(0)
   const [isValidate, setIsValidate] = useState(false)
+  const [open, toggle] = useOpen(false)
+  const [openSurrender, toggleSurrender] = useOpen(false)
+  const [win, setWin] = useState(false)
+  const [keyboardFind, setKeyBoardFind] = useState<ILetter[]>([])
 
   useEffect(() => {
     setGrid(GRID_INITIAL_VALUE)
@@ -38,7 +46,6 @@ function App() {
 
 
   const handleKeyPress = (event: unknown): void => {
-    
     const evt = event as KeyboardEvent
     evt.preventDefault()
 
@@ -58,7 +65,6 @@ function App() {
   }
 
   const setLetter = (l: string):void => {
-
     if(positionY > 5) return
     
     const gridCopy = [...grid]
@@ -69,7 +75,6 @@ function App() {
   }
 
   const deleteLetter = () => {
-
     if(positionX === 0) return
     const gridCopy = [...grid]
     
@@ -93,9 +98,13 @@ function App() {
     setPoisitionY(0)
     setIsValidate(false)
     searchWord()
+    open && toggle()
   }
 
   const enter = () => {
+
+    if(positionY > 5) return
+
     const gridRowWord = grid[positionY].map(el => el.letter).join('')
     const copyGrid = [...grid]
 
@@ -112,6 +121,9 @@ function App() {
       setGrid(copyGrid)
       setPoisitionY(6)
       setIsValidate(false)
+      toggle()
+      confetti()
+      setWin(true)
       return
     }
 
@@ -119,17 +131,40 @@ function App() {
     word.split('').forEach((el, index) => {
       if (el === copyGrid[positionY][index].letter) {
         copyGrid[positionY][index] = { letter: el, color: 'green' }
+        addLetterKeyBoard(copyGrid[positionY][index].letter, 'green')
       } else if (copyGrid[positionY].some(l => l.letter === el)) {
         const posX = copyGrid[positionY].findIndex(element => element.letter === el)
         if (copyGrid[positionY][posX].color !== 'green') {
           copyGrid[positionY][posX] = { letter: el, color: 'yellow' }
+          addLetterKeyBoard(copyGrid[positionY][index].letter, 'yellow')
         }
+      } else {
+        addLetterKeyBoard(copyGrid[positionY][index].letter, 'red')
       }
     })
 
     setPoisitionX(0)
     setPoisitionY(prev => prev + 1)
     setIsValidate(true)
+
+    if(positionY === 5 && !win) {
+      toggleSurrender()
+    }
+  }
+
+  const addLetterKeyBoard = (letter: string, color: string) => {
+    if(!keyboardFind.some(el => el.letter === letter)) {
+      setKeyBoardFind([
+        ...keyboardFind,
+        {letter: letter, color: color}
+      ])
+    }
+  }
+
+  const surrender = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    setPoisitionY(6)
+    toggleSurrender()
   }
 
   useEventListener({positionX, positionY, isValidate, handleKeyPress})
@@ -138,6 +173,7 @@ function App() {
     <div className='container'>
       <section className='container-header'>
         <button onClick={(e) => newGame(e)}>Nuevo juego</button>
+        {positionY > 0 && <button onClick={(e) => surrender(e)}>Rendirse</button>}
         <select value={lengthw} 
           onChange={(e) => {
             updateLengthWord(Number(e.target.value))
@@ -150,7 +186,9 @@ function App() {
         </select>
       </section>
       <Grid grid={grid}/>
-      <Keyboard setLetter={setLetter} deleteB={deleteLetter} enter={enter}/>
+      <Keyboard setLetter={setLetter} deleteB={deleteLetter} enter={enter} keyBoardFind={keyboardFind}/>
+      <WinnerModal open={open} word={word} closeToggle={toggle} newGame={newGame}/>
+      <SurrenderModal open={openSurrender} word={word} closeToggle={toggleSurrender} />
     </div>
   )
 }

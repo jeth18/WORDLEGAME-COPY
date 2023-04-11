@@ -7,6 +7,7 @@ export interface IKeyboard {
   setLetter: (l: string) => void
   deleteB: () => void
   enter: () => void
+  keyBoardFind: ILetter[]
 }
 
 export interface IUseWord {
@@ -14,4 +15,12 @@ export interface IUseWord {
   lengthw: number,
   searchWord: () => void
   updateLengthWord: (n: number) => void
+}
+
+
+export interface IModal {
+  open: boolean,
+  word: string,
+  closeToggle: () => void,
+  newGame?: (e: unknown) => void
 }

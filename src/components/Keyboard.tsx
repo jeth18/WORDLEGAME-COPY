@@ -1,14 +1,15 @@
 import { keyboard } from '../constants.d'
 import { IKeyboard } from '../interfaces'
 
-export const Keyboard = ({ setLetter, deleteB, enter}: IKeyboard) => {
+export const Keyboard = ({ setLetter, deleteB, enter, keyBoardFind}: IKeyboard) => {
+  
   return (
       <section className='container-alphabet'>
         {
         keyboard.map((row, index) => 
             <div key={index} className='row-alphabet'>
               { row.map((letter,i) => {
-
+                
                 if(letter === '<') {
                   return (
                     <button key={i}
@@ -33,7 +34,7 @@ export const Keyboard = ({ setLetter, deleteB, enter}: IKeyboard) => {
 
                 return (
                   <button key={i} 
-                    className={(letter === 'enter' || letter === 'delete') ? 'action' : ''}
+                    className={keyBoardFind.find(el => el.letter === letter)?.color}
                     onClick={() => setLetter(letter.toUpperCase())}>
                       {letter.toUpperCase()}
                   </button>
