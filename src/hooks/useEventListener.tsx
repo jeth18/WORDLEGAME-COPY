@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react'
 
 interface IUseEventListener {
-  positionX: number,
-  positionY: number,
-  isValidate: boolean,
+  position: object,
+  isValidate?: boolean,
   handleKeyPress: (event: unknown) => void
 }
 
-export const useEventListener = ({ positionX, positionY, isValidate, handleKeyPress }: IUseEventListener) => {
+export const useEventListener = ({ position, handleKeyPress }: IUseEventListener) => {
   const [event, setEvent] = useState<unknown>(null)
 
   useEffect(() => {
@@ -22,7 +21,7 @@ export const useEventListener = ({ positionX, positionY, isValidate, handleKeyPr
     return () => {
       document.removeEventListener('keydown', listener)
     }
-  }, [positionX, positionY, isValidate, handleKeyPress])
+  }, [position, handleKeyPress])
 
   return event
 

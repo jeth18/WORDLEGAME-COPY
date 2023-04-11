@@ -18,20 +18,9 @@ const INITIAL_VALUE: ILetter = {
 function App() {
   
   const { word, lengthw, searchWord, updateLengthWord } = useWord()
-
-  const GRID_INITIAL_VALUE: ILetter[][] = [
-    Array(lengthw).fill(INITIAL_VALUE),
-    Array(lengthw).fill(INITIAL_VALUE),
-    Array(lengthw).fill(INITIAL_VALUE),
-    Array(lengthw).fill(INITIAL_VALUE),
-    Array(lengthw).fill(INITIAL_VALUE),
-    Array(lengthw).fill(INITIAL_VALUE),
-  ]
-
+  const GRID_INITIAL_VALUE = Array.from({ length: 6 }, () => Array(lengthw).fill(INITIAL_VALUE))
   const [grid, setGrid] = useState<ILetter[][]>(GRID_INITIAL_VALUE)
-  const [positionX, setPoisitionX] = useState(0)
-  const [positionY, setPoisitionY] = useState(0)
-  const [isValidate, setIsValidate] = useState(false)
+  const [position, setPosition] = useState({ x: 0, y: 0})
   const [open, toggle] = useOpen(false)
   const [openSurrender, toggleSurrender] = useOpen(false)
   const [win, setWin] = useState(false)
@@ -39,9 +28,7 @@ function App() {
 
   useEffect(() => {
     setGrid(GRID_INITIAL_VALUE)
-    setPoisitionX(0)
-    setPoisitionY(0)
-    setIsValidate(false)
+    setPosition({ x: 0, y: 0})
   }, [lengthw])
 
 
@@ -49,7 +36,7 @@ function App() {
     const evt = event as KeyboardEvent
     evt.preventDefault()
 
-    if (positionY > 6) return
+    if (position.y > 6) return
 
     if (evt.key === 'Enter') {
       enter()
@@ -65,28 +52,29 @@ function App() {
   }
 
   const setLetter = (l: string):void => {
-    if(positionY > 5) return
+    if(position.y > 5) return
     
     const gridCopy = [...grid]
-    gridCopy[positionY][positionX] = { letter: l.toUpperCase(), color: 'none' }
+    gridCopy[position.y][position.x] = { letter: l.toUpperCase(), color: 'none' }
     setGrid(gridCopy)
     
-    if(positionX < lengthw - 1)  setPoisitionX(prev => prev + 1) 
+    if (position.x < lengthw - 1) setPosition({ x: position.x + 1, y: position.y }) 
   }
 
   const deleteLetter = () => {
-    if(positionX === 0) return
+    if (position.x === 0) return
+
     const gridCopy = [...grid]
-    
-    if(grid[positionY][positionX].letter !== '') {
-      gridCopy[positionY][positionX].letter = ''
-      setGrid(gridCopy)
+    const currentLetter = gridCopy[position.y][position.x].letter
+
+    if (currentLetter !== '') {
+      gridCopy[position.y][position.x].letter = ''
     } else {
-      setPoisitionX(prev => prev - 1)
-      gridCopy[positionY][positionX - 1].letter = ''
-      setGrid(gridCopy)
+      setPosition((prev) => ({ ...prev, x: prev.x - 1 }))
+      gridCopy[position.y][position.x - 1].letter = ''
     }
 
+    setGrid(gridCopy)
   }
   
   const newGame = (e: unknown) => {
@@ -94,18 +82,17 @@ function App() {
     evt.preventDefault()
 
     setGrid(GRID_INITIAL_VALUE)
-    setPoisitionX(0)
-    setPoisitionY(0)
-    setIsValidate(false)
+    setPosition({ x: 0, y: 0})
+    setKeyBoardFind([])
     searchWord()
     open && toggle()
   }
 
   const enter = () => {
 
-    if(positionY > 5) return
+    if(position.y > 5) return
 
-    const gridRowWord = grid[positionY].map(el => el.letter).join('')
+    const gridRowWord = grid[position.y].map(el => el.letter).join('')
     const copyGrid = [...grid]
 
     if (gridRowWord.length < lengthw) {
@@ -114,13 +101,12 @@ function App() {
     }
 
     //correct word
-    if (word === gridRowWord) {
+    if (word.normalize('NFD').replace(/[\u0300-\u036f]/g,'') === gridRowWord) {
       for (let i = 0; i < lengthw; i++) {
-        copyGrid[positionY][i] = { letter: copyGrid[positionY][i].letter, color: 'green' }
+        copyGrid[position.y][i] = { letter: copyGrid[position.y][i].letter, color: 'green' }
       }
       setGrid(copyGrid)
-      setPoisitionY(6)
-      setIsValidate(false)
+      setPosition({ x: position.x, y: 6})
       toggle()
       confetti()
       setWin(true)
@@ -129,27 +115,25 @@ function App() {
 
     //verificar letters
     word.split('').forEach((el, index) => {
-      if (el === copyGrid[positionY][index].letter) {
-        copyGrid[positionY][index] = { letter: el, color: 'green' }
-        addLetterKeyBoard(copyGrid[positionY][index].letter, 'green')
-      } else if (copyGrid[positionY].some(l => l.letter === el)) {
-        const posX = copyGrid[positionY].findIndex(element => element.letter === el)
-        if (copyGrid[positionY][posX].color !== 'green') {
-          copyGrid[positionY][posX] = { letter: el, color: 'yellow' }
-          addLetterKeyBoard(copyGrid[positionY][index].letter, 'yellow')
+      el = el.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      if (el === copyGrid[position.y][index].letter) {
+        copyGrid[position.y][index] = { letter: el, color: 'green' }
+        addLetterKeyBoard(copyGrid[position.y][index].letter, 'green')
+      } else if (copyGrid[position.y].some(l => l.letter === el)) {
+        const posX = copyGrid[position.y].findIndex(element => element.letter === el)
+        if (copyGrid[position.y][posX].color !== 'green') {
+          copyGrid[position.y][posX] = { letter: el, color: 'yellow' }
+          addLetterKeyBoard(copyGrid[position.y][index].letter, 'yellow')
         }
       } else {
-        addLetterKeyBoard(copyGrid[positionY][index].letter, 'red')
+        addLetterKeyBoard(copyGrid[position.y][index].letter, 'red')
       }
     })
 
-    setPoisitionX(0)
-    setPoisitionY(prev => prev + 1)
-    setIsValidate(true)
+    setPosition({ x: 0, y: position.y + 1 })
 
-    if(positionY === 5 && !win) {
-      toggleSurrender()
-    }
+    if(position.y === 5 && !win) toggleSurrender()
+    
   }
 
   const addLetterKeyBoard = (letter: string, color: string) => {
@@ -163,17 +147,17 @@ function App() {
 
   const surrender = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    setPoisitionY(6)
+    setPosition({x: position.x, y: 6})
     toggleSurrender()
   }
 
-  useEventListener({positionX, positionY, isValidate, handleKeyPress})
+  useEventListener({position, handleKeyPress})
 
   return (
     <div className='container'>
       <section className='container-header'>
         <button onClick={(e) => newGame(e)}>Nuevo juego</button>
-        {positionY > 0 && <button onClick={(e) => surrender(e)}>Rendirse</button>}
+        {position.y > 0 && <button onClick={(e) => surrender(e)}>Rendirse</button>}
         <select value={lengthw} 
           onChange={(e) => {
             updateLengthWord(Number(e.target.value))
