@@ -9,6 +9,7 @@ import { WinnerModal } from './components/WinnerModal'
 import { SurrenderModal } from './components/SurrenderModal'
 import confetti from 'canvas-confetti'
 import './App.css'
+import { MessageAlert } from './components/MessageAlert'
 
 const INITIAL_VALUE: ILetter = {
   letter: '',
@@ -25,6 +26,7 @@ function App() {
   const [openSurrender, toggleSurrender] = useOpen(false)
   const [win, setWin] = useState(false)
   const [keyboardFind, setKeyBoardFind] = useState<ILetter[]>([])
+  const [openMinWord, setOpenMinWord] = useState(false)
 
   useEffect(() => {
     setGrid(GRID_INITIAL_VALUE)
@@ -96,7 +98,10 @@ function App() {
     const copyGrid = [...grid]
 
     if (gridRowWord.length < lengthw) {
-      alert('Error la palabra es muy corta')
+      setOpenMinWord(true)
+      setTimeout(() => {
+          setOpenMinWord(false)
+      }, 1000)
       return
     }
 
@@ -173,6 +178,9 @@ function App() {
       <Keyboard setLetter={setLetter} deleteB={deleteLetter} enter={enter} keyBoardFind={keyboardFind}/>
       <WinnerModal open={open} word={word} closeToggle={toggle} newGame={newGame}/>
       <SurrenderModal open={openSurrender} word={word} closeToggle={toggleSurrender} />
+      <MessageAlert open={openMinWord}>
+        La palabra escrita es muy corta
+      </MessageAlert>
     </div>
   )
 }
