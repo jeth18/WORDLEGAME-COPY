@@ -154,8 +154,8 @@ function App() {
 
   const addLetterKeyBoard = (letter: string, color: string) => {
     if(!keyboardFind.some(el => el.letter === letter)) {
-      setKeyBoardFind([
-        ...keyboardFind,
+      setKeyBoardFind((prev) => [
+        ...prev,
         {letter: letter, color: color}
       ])
     }
